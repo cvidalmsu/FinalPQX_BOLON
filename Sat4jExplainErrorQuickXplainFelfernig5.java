@@ -324,8 +324,15 @@ public class Sat4jExplainErrorQuickXplainFelfernig5 extends Sat4jQuestion implem
 		}
 
 		public void compute() {	
-//			System.out.println("++CT: " + Thread.currentThread().getId() + " - C: " + C + "\n+++++ Bd: " + Bd + "\n+++++ B: " + B + "\n+++++ Delta: " + Delta + "\n+++++ l: " + l);
+	//		System.out.println("++CT: " + Thread.currentThread().getId() + " - C: " + C + "\n+++++ Bd: " + Bd + "\n+++++ B: " + B + "\n+++++ Delta: " + Delta + "\n+++++ l: " + l);
 			if (l < lmax){		
+
+/*				ArrayList<String> flatD = new ArrayList<String>();
+				for(int i=0; i< Delta.size(); i++){
+					flatD.addAll(Delta.get(i));
+				}
+*/
+//				if (Delta.size() != 0 && flatD.size() !=0){
 				if (Delta.size() != 0){
 					AddCC cc0 = new AddCC(plus(Bd, B));
 					pool.execute(cc0);
@@ -344,12 +351,12 @@ public class Sat4jExplainErrorQuickXplainFelfernig5 extends Sat4jQuestion implem
 					pool.execute(qxGen1);
 				
 				}else if (C1.get(0).size() > 1){
-					int kc = C1.size() / 2;
+					int kc = C1.get(0).size() / 2;
 					ArrayList<List<String>> Ca = new ArrayList<List<String>>(); 
 					Ca.add(C1.get(0).subList(0, kc));
 					ArrayList<List<String>> Cb = new ArrayList<List<String>>(); 
-					Cb.add(C1.get(0).subList(kc, C.size()));
-			
+					Cb.add(C1.get(0).subList(kc, C1.get(0).size()));
+//					System.out.println("Ca: " + Ca + " - Cb: " + Cb);
 					QXGen qxGen2 = new QXGen(Ca, plusS(Cb, Bd), B, Cb, l + 1);
 					pool.execute(qxGen2);
 				}
