@@ -141,12 +141,12 @@ public class Sat4jExplainErrorQuickXplainFelfernig5 extends Sat4jQuestion implem
 		for (String s : quickX) {
 			result.put(s, productConstraint.get(s));
 		}
-		
+		/*
 		System.out.println("LookUP: ");
 		for(String kkb: LookUp.keySet()){
 			System.out.println(kkb + ": " + LookUp.get(kkb).val + " - " + LookUp.get(kkb).state);	
 		}
-	
+	*/
 		return new Sat4jResult();
 	}
 	
@@ -284,18 +284,18 @@ public class Sat4jExplainErrorQuickXplainFelfernig5 extends Sat4jQuestion implem
 	//	System.out.println("C: " + C + "\nB: " + B + "\nBd: " + Bd);
 		
 		if (Bd.size() != 0 && INCONSISTENT(C, B, Bd)) {
-			System.out.println();
+//			System.out.println();
 			return new ArrayList<String>();
 		}
 		if (C.size() == 1) {
-			System.out.println();
+//			System.out.println();
 			return C;
 		}
 		
 		int k = C.size() / 2;
 		List<String> Ca = C.subList(0, k);
 		List<String> Cb = C.subList(k, C.size());
-		System.out.println("Ca: " + Ca + "\nCb: " + Cb +"\n");
+		//System.out.println("Ca: " + Ca + "\nCb: " + Cb +"\n");
 		
 		List<String> Delta2 = QX(Ca, plus(B, Cb), Cb);
 		List<String> Delta1 = QX(Cb, plus(B, Delta2), Delta2);
