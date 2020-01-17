@@ -142,6 +142,11 @@ public class Sat4jExplainErrorQuickXplainFelfernig5 extends Sat4jQuestion implem
 			result.put(s, productConstraint.get(s));
 		}
 		
+		System.out.println("LookUP: ");
+		for(String kkb: LookUp.keySet()){
+			System.out.println(kkb + ": " + LookUp.get(kkb).val + " - " + LookUp.get(kkb).state);	
+		}
+	
 		return new Sat4jResult();
 	}
 	
@@ -229,10 +234,14 @@ public class Sat4jExplainErrorQuickXplainFelfernig5 extends Sat4jQuestion implem
 		Set<String> res = new LinkedHashSet<>(a1);
 
 		res.addAll(a2);
-		return(new ArrayList(res));
+		return(new ArrayList<String>(res));
 	}
 
 	public class AddCC extends RecursiveAction {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 		Collection<String> AC;
 		String kAC;
 		
@@ -242,7 +251,7 @@ public class Sat4jExplainErrorQuickXplainFelfernig5 extends Sat4jQuestion implem
 			Collections.sort(sAC);
 	
 			this.kAC  = String.join(", ", sAC);			
-			
+		//	System.out.println("---AddCC: " + this.kAC + "\n");
 			LookUp.putIfAbsent(kAC, new CCValue(false, 0));
 		}
 			
@@ -257,9 +266,11 @@ public class Sat4jExplainErrorQuickXplainFelfernig5 extends Sat4jQuestion implem
 	}
 
 	public List<String> QuickXplain(List<String> C, List<String> B) throws InterruptedException { 
-		ForkJoinPool pool = new ForkJoinPool(16);
+//		System.out.println("C: " + C + "\nB: " + B + "\n"); 
+		pool = new ForkJoinPool(16);
 		//INCONSISTENT(plus(C, B))
 		if (!INCONSISTENT(C, B, new ArrayList<String>()))
+	//	if (!INCONSISTENT(plus(B, C)))
 			return new ArrayList<String>();
 		
 		else if (C.isEmpty())
@@ -270,18 +281,21 @@ public class Sat4jExplainErrorQuickXplainFelfernig5 extends Sat4jQuestion implem
 	}
 
 	public List<String> QX(List<String> C, List<String> B, List<String> Bd) throws InterruptedException {
+	//	System.out.println("C: " + C + "\nB: " + B + "\nBd: " + Bd);
+		
 		if (Bd.size() != 0 && INCONSISTENT(C, B, Bd)) {
-		//if (Bd.size() != 0 && INCONSISTENT(null, B, null)) {
-
+			System.out.println();
 			return new ArrayList<String>();
 		}
 		if (C.size() == 1) {
+			System.out.println();
 			return C;
 		}
 		
 		int k = C.size() / 2;
 		List<String> Ca = C.subList(0, k);
 		List<String> Cb = C.subList(k, C.size());
+		System.out.println("Ca: " + Ca + "\nCb: " + Cb +"\n");
 		
 		List<String> Delta2 = QX(Ca, plus(B, Cb), Cb);
 		List<String> Delta1 = QX(Cb, plus(B, Delta2), Delta2);
@@ -310,6 +324,7 @@ public class Sat4jExplainErrorQuickXplainFelfernig5 extends Sat4jQuestion implem
 		}
 
 		public void compute() {	
+//			System.out.println("++CT: " + Thread.currentThread().getId() + " - C: " + C + "\n+++++ Bd: " + Bd + "\n+++++ B: " + B + "\n+++++ Delta: " + Delta + "\n+++++ l: " + l);
 			if (l < lmax){		
 				if (Delta.size() != 0){
 					AddCC cc0 = new AddCC(plus(Bd, B));
@@ -321,10 +336,9 @@ public class Sat4jExplainErrorQuickXplainFelfernig5 extends Sat4jQuestion implem
 				for(int i=0; i< C.size(); i++){
 					flatC.addAll(C.get(i));
 				}
-				
+		//		System.out.println("FlatC: " + flatC + "\n");
 				ArrayList<List<String>> C1 = new ArrayList<List<String>>();
 				C1.add(C.get(C.size()-1));
-								
 				if (flatC.size() == 1 && Bd.size() != 0){
 					QXGen qxGen1 = new QXGen(Bd, new ArrayList<List<String>>(), plusS(B, C1), C1, l + 1);
 					pool.execute(qxGen1);
@@ -353,10 +367,24 @@ public class Sat4jExplainErrorQuickXplainFelfernig5 extends Sat4jQuestion implem
 	}
 
 	Boolean firstCase = true;
+	private boolean INCONSISTENT(List<String> B) throws InterruptedException {
+		Boolean res;
+
+		cuantosCC++;
+		
+		firstCase= false;
+		
+		res = isConsistent(B);
+		String kB = String.join(", ", B);
+		LookUp.put(kB, new CCValue(res, 1));
+			
+		return !res;
+	}
+
 	private boolean INCONSISTENT(List<String> C, List<String> B, List<String> Bd) throws InterruptedException {
 //		System.out.println("--D: " + D + ": " + D.size() + " -- S: " + S + ": " + S.size());
 //		System.out.println("--AC: " + aC + ": " + aC.size() + "\n");
-		
+			
 		cuantosCC++;
 		Collections.sort(B);
 		String kB = String.join(", ", B);
@@ -374,11 +402,13 @@ public class Sat4jExplainErrorQuickXplainFelfernig5 extends Sat4jQuestion implem
 		ArrayList<List<String>> Cs  = new ArrayList<List<String>>(); Cs.add(C);
 		ArrayList<List<String>> Bds = new ArrayList<List<String>>(); Bds.add(Bd);
 		ArrayList<List<String>> Bs  = new ArrayList<List<String>>(); Bs.add(less(B, Bd));
-		ArrayList<List<String>> Ds  = new ArrayList<List<String>>(); Ds.add(B);
+		ArrayList<List<String>> Ds  = new ArrayList<List<String>>(); Ds.add(Bd);
 		////
 	
-		QXGen tR = new QXGen(Cs, Bds,  Bs, Ds, 0);
-		pool.execute(tR);
+		if (lmax > 0){		
+			QXGen tR = new QXGen(Cs, Bds,  Bs, Ds, 0);
+			pool.execute(tR);
+		}
 		
 		Boolean res;
 		
